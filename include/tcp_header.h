@@ -31,4 +31,8 @@ struct tcp_hdr {
     uint16_t    th_urp;
 };
 
+#define SOCKL_TCP   6
+
+#define TCP_OPT_KEEPIDLE    4
+
 #endif

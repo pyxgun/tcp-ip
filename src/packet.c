@@ -134,8 +134,8 @@ void set_tcp(char *p, struct inet_addr *src, struct inet_addr *dst, unsigned sho
     tcp = (struct tcp_hdr *)(buffer + sizeof(struct ippseudo_hdr));
     tcp->th_sport   = htons(sport);
     tcp->th_dport   = htons(dport);
-    tcp->th_seq     = htons(seq);
-    tcp->th_ack     = htons(ack);
+    tcp->th_seq     = seq;
+    tcp->th_ack     = ack;
     tcp->th_off     = 5;
     tcp->th_x2      = 0;
     tcp->th_flags   = flag;

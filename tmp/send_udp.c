@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
     set_udp(ip_packet, &src, &dst, sport, dport, data);
 
     /* create raw socket */
-    sockfd = rsockfd();
+    sockfd = rsockfd(IPP_RAW);
     setsockaddr(&sockdst, dst, dport);
 
     /* send raw socket */

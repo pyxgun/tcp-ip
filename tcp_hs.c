@@ -20,34 +20,38 @@ int main(int argc, char **argv) {
     int sockfd;
     struct sockaddr_inet sockdst;
 
+    /* for recvfrom */
+    int sockdst_len;
+    char data_received[256];
+
     src.s_addr = inet_addr("172.17.50.11");
     dst.s_addr = inet_addr("172.30.0.3");
-    sport = 65015;
-    dport = 443;
+    sport = 65154;
+    dport = 11111;
 
+    /* create ipv4 header */
     data = "";
-
-    /* create ipv4 header and tcp datagram */
     packetsize = packet_size(IPP_TCP, data);
     ip_packet = pballoc(packetsize);
     set_ipv4(ip_packet, &src, &dst, IPP_TCP, packetsize);
-    set_tcp(ip_packet, &src, &dst, sport, dport, 5174, 0, TCPF_SYN, 64240, 0, data);
 
     /* create raw socket */
-    sockfd = rsockfd();
+    sockfd = rsockfd(IPP_TCP);
     setsockaddr(&sockdst, dst, dport);
 
-    /* send raw socket */
+    /* send TCP SYN */
+    set_tcp(ip_packet, &src, &dst, sport, dport, htonl(52380), 0, TCPF_SYN, 64240, 0, data);
     sendrsock(sockfd, ip_packet, packetsize, sockdst);
 
-    int sockdst_len = sizeof(sockdst);
-    char data_received[256];
+    /* receive raw socket */
+    recvrsock(sockfd, &data_received, sizeof(data_received), 0, (struct sockaddr *)&sockdst, &sockdst_len);
 
-    if (recvfrom(sockfd, data_received, sizeof(data_received), 0, (struct sockaddr*)&sockdst, &sockdst_len) < 0) {
-        close(sockfd);
-        free(ip_packet);
-        exit(1);
-    }
+    /* send TCP ACK */
+    struct ip_hdr *ip = (struct ip_hdr *)data_received;
+    struct tcp_hdr *tcp = (struct tcp_hdr *)((char *)ip + (ip->ip_hl << 2));
+    set_tcp(ip_packet, &src, &dst, sport, dport, tcp->th_ack, ntohl(htonl(tcp->th_seq) + 1), TCPF_ACK, 64240, 0, data);
+    sendrsock(sockfd, ip_packet, packetsize, sockdst);
+
 
     close(sockfd);
     free(ip_packet);

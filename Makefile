@@ -10,7 +10,7 @@ COMPILER = gcc
 all: $(PROG)
 
 $(PROG): $(OBJS)
-	$(COMPILER) -o $@ $(notdir $(OBJS))
+	$(COMPILER) -fsanitize=address -fno-omit-frame-pointer -o $@ $(notdir $(OBJS))
 
 %.o: %.c
 	$(COMPILER) -c -O3 $(addprefix -I, $(INCS)) $<
