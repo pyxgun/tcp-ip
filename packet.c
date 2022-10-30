@@ -50,8 +50,8 @@ unsigned short in_cksum(unsigned short *addr, int len) {
 
 
 /* set IPv4 packet */
-void set_ipv4(char *p, struct inet_addr *src, struct inet_addr *dst, unsigned short protocol,
-                size_t len, char *data, size_t data_len) {
+void set_ipv4(char *p, struct inet_addr *src, struct inet_addr *dst,
+                unsigned short protocol, size_t len, char *data, size_t data_len) {
     struct ip_hdr *ip;
 
     ip = (struct ip_hdr *)p;
@@ -113,6 +113,25 @@ void set_udp(char *p, struct inet_addr *src, struct inet_addr *dst,
     free(buffer);
 }
 
+char *segalloc(unsigned short protocol, char *data) {
+    char *buffer;
+    switch (protocol) {
+        case IPP_UDP:
+            buffer = malloc(sizeof(struct udp_hdr) + strlen(data));
+            break;
+        case IPP_TCP:
+            /* TODO */
+            break;
+        default:
+            break;
+    }
+    if (buffer == NULL) {
+        fprintf(stderr, "ERR: failed to allocate memory for segment.\n");
+        exit(1);
+    }
+    return buffer;
+}
+
 int main(void) {
     int sock_d;
     char *data;
@@ -121,16 +140,18 @@ int main(void) {
     unsigned short sport, dport;
     struct sockaddr_inet sock_to;
     socklen_t tolen = sizeof(struct sockaddr_inet);
-    size_t packetsize;
+    size_t packetsize, datagramsize;
     int on = 1;
 
-    src.s_addr = inet_addr("172.30.0.3");
-    dst.s_addr = inet_addr("47.74.13.140");
+    src.s_addr = inet_addr("192.168.1.1");
+    dst.s_addr = inet_addr("172.30.0.3");
     sport = 65001;
     dport = 12345;
     data  = "This is test packet";
 
-    packetsize = sizeof(struct ip_hdr) + sizeof(struct udp_hdr) + strlen(data);
+    datagramsize = sizeof(struct udp_hdr) + strlen(data);
+    udp_datagram = segalloc(IPP_UDP, data);
+    packetsize = sizeof(struct ip_hdr) + datagramsize;
     if ((ip_packet = malloc(packetsize)) == NULL) {
         fprintf(stderr, "ERR: failed to allocate memory for ip packet.\n");
         exit(1);
@@ -146,7 +167,7 @@ int main(void) {
     }
 
     set_udp(udp_datagram, &src, &dst, sport, dport, data);
-    set_ipv4(ip_packet, &src, &dst, IPP_UDP, packetsize, udp_datagram, sizeof(struct udp_hdr) + strlen(data));
+    set_ipv4(ip_packet, &src, &dst, IPP_UDP, packetsize, udp_datagram, datagramsize);
 
     memset(&sock_to, 0, sizeof(struct sockaddr_in));
     sock_to.sin_addr    = dst;
@@ -159,5 +180,7 @@ int main(void) {
         exit(1);
     }
 
+    free(udp_datagram);
+    free(ip_packet);
     close(sock_d);
 }
