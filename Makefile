@@ -1,4 +1,4 @@
-PROG = udpdatagram
+PROG = a.out
 
 ALL  = $(wildcard *.c) $(wildcard src/*.c)
 OBJS = $(ALL:%.c=%.o)

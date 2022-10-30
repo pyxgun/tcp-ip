@@ -38,3 +38,4 @@ void sendrsock(int fd, char *data, size_t data_len, struct sockaddr_inet sockadd
         exit(1);
     }
 }
+

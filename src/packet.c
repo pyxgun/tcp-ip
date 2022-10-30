@@ -5,6 +5,7 @@
 #include <string.h>
 #include "ip_header.h"
 #include "udp_header.h"
+#include "tcp_header.h"
 
 /* computing checksum */
 unsigned short in_cksum(unsigned short *addr, int len) {
@@ -96,12 +97,61 @@ void set_udp(char *p, struct inet_addr *src, struct inet_addr *dst,
     udp->uh_sum   = 0;
     /* set data after udp header */
     memcpy((char *)udp + sizeof(struct udp_hdr), data, strlen(data));
-    /* computing checsum */
+    /* computing checksum */
     udp->uh_sum = in_cksum((unsigned short *)buffer, total_len);
 
     /* set udp datagram */
     ip = (struct ip_hdr *)p;
     memcpy(p + (ip->ip_hl << 2), udp, total_len - sizeof(struct ippseudo_hdr));
+
+    free(buffer);
+}
+
+void set_tcp(char *p, struct inet_addr *src, struct inet_addr *dst, unsigned short sport, unsigned short dport,
+                tcp_seq seq, tcp_seq ack, uint8_t flag, uint16_t win_size, uint16_t urp, char *data) {
+    char *buffer;
+    struct ip_hdr *ip;
+    struct tcp_hdr *tcp;
+    struct ippseudo_hdr *pse;
+    int total_len;
+
+    /* computing total size of pseudo header, tcp header and payload */
+    total_len = sizeof(struct ippseudo_hdr) + sizeof(struct tcp_hdr) + strlen(data);
+    if ((buffer = malloc(total_len)) == NULL) {
+        fprintf(stderr, "ERR: failed to allocate memory for tcp header.\n");
+        exit(1);
+    }
+    memset(buffer, 0, total_len);
+
+    /* set pseudo header */
+    pse = (struct ippseudo_hdr *)buffer;
+    pse->ippseudo_src.s_addr = src->s_addr;
+    pse->ippseudo_dst.s_addr = dst->s_addr;
+    pse->ippseudo_p          = IPP_TCP;
+    pse->ippseudo_len        = htons(sizeof(struct tcp_hdr) + strlen(data));
+
+    /* set tcp header after pseudo header */
+    tcp = (struct tcp_hdr *)(buffer + sizeof(struct ippseudo_hdr));
+    tcp->th_sport   = htons(sport);
+    tcp->th_dport   = htons(dport);
+    tcp->th_seq     = htons(seq);
+    tcp->th_ack     = htons(ack);
+    tcp->th_off     = 5;
+    tcp->th_x2      = 0;
+    tcp->th_flags   = flag;
+    tcp->th_win     = htons(win_size);
+    tcp->th_sum     = 0;
+    tcp->th_urp     = urp;
+    /* set data after tcp header */
+    if (strlen(data) != 0) {
+        memcpy((char *)tcp + sizeof(struct tcp_hdr), data, strlen(data));
+    }
+    /* computing checksum */
+    tcp->th_sum = in_cksum((unsigned short *)buffer, total_len);
+
+    /* set udp datagram */
+    ip = (struct ip_hdr *)p;
+    memcpy(p + (ip->ip_hl << 2), tcp, total_len - sizeof(struct ippseudo_hdr));
 
     free(buffer);
 }
@@ -112,14 +162,14 @@ size_t packet_size(unsigned short protocol, char *data) {
     /* payload size */
     switch (protocol) {
         case IPP_UDP:
-            packetsize = sizeof(struct udp_hdr) + strlen(data);
+            packetsize = sizeof(struct udp_hdr);
             break;
         case IPP_TCP:
-            /* TODO */
+            packetsize = sizeof(struct tcp_hdr);
             break;
     }
     /* ip header and payload size */
-    packetsize += sizeof(struct ip_hdr);
+    packetsize += sizeof(struct ip_hdr) + strlen(data);
 
     return packetsize;
 }

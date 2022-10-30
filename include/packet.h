@@ -12,6 +12,10 @@ void set_ipv4(char *p, struct inet_addr *src, struct inet_addr *dst,
 void set_udp(char *p, struct inet_addr *src, struct inet_addr *dst,
                 unsigned short sport, unsigned short dport, char *data);
 
+/* set tcp datagram */
+void set_tcp(char *p, struct inet_addr *src, struct inet_addr *dst, unsigned short sport, unsigned short dport,
+                tcp_seq seq, tcp_seq ack, uint8_t flag, uint16_t win_size, uint16_t urp, char *data);
+
 /* calculate total packet size */
 size_t packet_size(unsigned short protocol, char *data);
 

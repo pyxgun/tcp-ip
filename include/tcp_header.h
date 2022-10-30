@@ -20,12 +20,12 @@ struct tcp_hdr {
     uint8_t     th_x2:4;
 #endif
     uint8_t     th_flags;
-#define TCPH_FIN    0x01
-#define TCPH_SYN    0x02
-#define TCPH_RST    0x04
-#define TCPH_PSH    0x08
-#define TCPH_ACK    0x10
-#define TCPH_URG    0x20
+#define TCPF_FIN    0x01
+#define TCPF_SYN    0x02
+#define TCPF_RST    0x04
+#define TCPF_PSH    0x08
+#define TCPF_ACK    0x10
+#define TCPF_URG    0x20
     uint16_t    th_win;
     uint16_t    th_sum;
     uint16_t    th_urp;
