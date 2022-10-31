@@ -1,5 +1,7 @@
 #ifndef _SOCKET_FUNC
 #define _SOCKET_FUNC 1
+#include <arpa/inet.h>
+#include "socket_struct.h"
 
 /* create raw socket file descriptor */
 int rsockfd(unsigned short protocol);

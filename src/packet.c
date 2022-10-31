@@ -8,41 +8,18 @@
 #include "tcp_header.h"
 
 /* computing checksum */
-unsigned short in_cksum(unsigned short *addr, int len) {
-    int nleft, sum;
-    unsigned short *w;
-    union {
-        unsigned short us;
-        unsigned char  uc[2];
-    } last;
-    unsigned short answer;
-
-    nleft = len;
-    sum = 0;
-    w = addr;
-
-    /*
-     * Our algorithm is simple, using a 32 bit accumulator (sum), we add
-     * sequential 16 bit words to it, and at the end, fold back all the
-     * carry bits from the top 16 bits into the lower 16 bits.
-     */
-    while (nleft > 1)  {
-        sum += *w++;
-        nleft -= 2;
+unsigned short in_cksum(unsigned short *buff, int len) {
+    unsigned long cksum = 0;
+    while (len > 1) {
+        cksum += *buff++;
+        len -= 2;
     }
-
-    /* mop up an odd byte, if necessary */
-    if (nleft == 1) {
-        last.uc[0] = *(unsigned char *)w;
-        last.uc[1] = 0;
-        sum += last.us;
+    if (len) {
+        cksum += *(uint8_t *)buff;
     }
-
-    /* add back carry outs from top 16 bits to low 16 bits */
-    sum = (sum >> 16) + (sum & 0xffff);     /* add hi 16 to low 16 */
-    sum += (sum >> 16);                     /* add carry */
-    answer = ~sum;                          /* truncate to 16 bits */
-    return(answer);
+    cksum = (cksum >> 16) + (cksum & 0xffff);
+    cksum = (cksum >> 16) + (cksum & 0xffff);
+    return (unsigned short)(~cksum);
 }
 
 

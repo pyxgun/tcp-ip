@@ -14,7 +14,7 @@ int rsockfd(unsigned short protocol) {
     int optval = 1;     /* for socket option */
 
     /* create raw socket file descriptor */
-    if ((fd = socket(AF_INET, SOCK_RAW, protocol)) < 0) {
+    if ((fd = socket(PF_INET, SOCK_RAW, protocol)) < 0) {
         fprintf(stderr, "ERR: failed to create raw socket file descriptor.\n");
         exit(1);
     }
