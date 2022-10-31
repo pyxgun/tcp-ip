@@ -5,7 +5,8 @@
 #include "packet.h"
 #include "genrand.h"
 
-void tcp_connect(int fd, struct inet_addr *src, struct inet_addr *dst, unsigned short sport, unsigned short dport, struct sockaddr_inet *sockdst, char *buffer) {
+void tcp_connect(int fd, struct inet_addr *src, struct inet_addr *dst, unsigned short sport, unsigned short dport,
+                    struct sockaddr_inet *sockdst, char *buffer) {
     char    *ip_packet;
     size_t  packetsize;
     char    *data;          /* empty data */
