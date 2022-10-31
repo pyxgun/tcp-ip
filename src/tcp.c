@@ -32,7 +32,7 @@ void tcp_connect(int fd, struct inet_addr *src, struct inet_addr *dst, unsigned 
     struct ip_hdr *ip = (struct ip_hdr *)buffer;
     struct tcp_hdr *tcp = (struct tcp_hdr *)((char *)ip + (ip->ip_hl << 2));
 
-    /* send TCP SYN */
+    /* send TCP ACK */
     set_tcp(ip_packet, src, dst, sport, dport, tcp->th_ack, ntohl(htonl(tcp->th_seq) + 1), TCPF_ACK, 64240, 0, data);
     sendrsock(fd, ip_packet, packetsize, *sockdst);
 
