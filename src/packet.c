@@ -23,6 +23,30 @@ unsigned short in_cksum(unsigned short *buff, int len) {
 }
 
 
+size_t packet_size(unsigned short protocol, char *data) {
+    size_t packetsize;
+    
+    /* payload size */
+    switch (protocol) {
+        case IPP_UDP:
+            packetsize = sizeof(struct udp_hdr);
+            break;
+        case IPP_TCP:
+            packetsize = sizeof(struct tcp_hdr);
+            break;
+    }
+    /* ip header and payload size */
+    packetsize += sizeof(struct ip_hdr) + strlen(data);
+
+    return packetsize;
+}
+
+char *pballoc(size_t packet_size) {
+    char *buffer = malloc(packet_size);
+    return buffer;
+}
+
+
 /* set IPv4 packet */
 void set_ipv4(char *p, struct inet_addr *src, struct inet_addr *dst, unsigned short protocol, size_t len) {
     struct ip_hdr *ip;
@@ -42,6 +66,11 @@ void set_ipv4(char *p, struct inet_addr *src, struct inet_addr *dst, unsigned sh
     /* computing checksum */
     ip->ip_sum  = in_cksum((unsigned short *)ip, ip->ip_hl << 2);
 }
+
+struct ip_hdr *cvt2ipv4(char *p) {
+    return (struct ip_hdr *)p;
+}
+
 
 void set_udp(char *p, struct inet_addr *src, struct inet_addr *dst,
                 unsigned short sport, unsigned short dport, char *data) {
@@ -133,25 +162,18 @@ void set_tcp(char *p, struct inet_addr *src, struct inet_addr *dst, unsigned sho
     free(buffer);
 }
 
-size_t packet_size(unsigned short protocol, char *data) {
-    size_t packetsize;
-    
-    /* payload size */
-    switch (protocol) {
-        case IPP_UDP:
-            packetsize = sizeof(struct udp_hdr);
-            break;
-        case IPP_TCP:
-            packetsize = sizeof(struct tcp_hdr);
-            break;
-    }
-    /* ip header and payload size */
-    packetsize += sizeof(struct ip_hdr) + strlen(data);
-
-    return packetsize;
+struct tcp_hdr *cvt2tcp(char *p) {
+    struct ip_hdr *ip = (struct ip_hdr *)p;
+    return (struct tcp_hdr *)((char *)ip + (ip->ip_hl << 2));
 }
 
-char *pballoc(size_t packet_size) {
-    char *buffer = malloc(packet_size);
-    return buffer;
+char *tcp_payload(struct tcp_hdr *p) {
+    return (char *)((char *)p + (p->th_off << 2));
+}
+
+size_t tcp_pl_len(char *p) {
+    struct ip_hdr *ip = cvt2ipv4(p);
+    struct tcp_hdr *tcp = cvt2tcp(p);
+    size_t tcp_pl_len = htons(ip->ip_len) - (ip->ip_hl * 4) - (tcp->th_off * 4);
+    return tcp_pl_len;
 }

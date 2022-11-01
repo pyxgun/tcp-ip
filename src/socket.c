@@ -24,14 +24,6 @@ int rsockfd(unsigned short protocol) {
         exit(1);
     }
 
-    if (protocol == IPP_TCP) {
-        int opt = 5;
-        if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &optval, sizeof(optval)) < 0) {
-            fprintf(stderr, "ERR: failed to set sokcet option: SO_KEEPALIVE.\n");
-            exit(1);
-        }
-    }
-
     return fd;
 }
 
