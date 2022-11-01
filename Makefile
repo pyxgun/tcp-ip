@@ -13,7 +13,7 @@ $(PROG): $(OBJS)
 	$(COMPILER) -fsanitize=address -fno-omit-frame-pointer -o $@ $(notdir $(OBJS))
 
 %.o: %.c
-	$(COMPILER) -c -O3 $(addprefix -I, $(INCS)) $<
+	$(COMPILER) -c -O2 $(addprefix -I, $(INCS)) $<
 
 clean:
 	rm *.o
