@@ -16,9 +16,9 @@
 int main(int argc, char **argv) {
     struct inet_addr src, dst;
     unsigned short sport, dport;
-    char *data, *ip_packet, *tcp_packet;
+    char *data;
     size_t packetsize;
-    char recvdata[2048];
+    char recvdata[1500];
     
     int sockfd;
     struct sockaddr_inet sockdst;
@@ -33,38 +33,38 @@ int main(int argc, char **argv) {
     sockfd = rsockfd(IPP_TCP);
     setsockaddr(&sockdst, dst, dport);
 
-    /* tcp 3 way handshake */
-    tcp_connect(sockfd, &src, &dst, sport, dport, &sockdst, recvdata);
+    /* set socket info */
+    struct sockinfo socket;
+    socket.fd       = sockfd;
+    socket.src_addr = &src;
+    socket.dst_addr = &dst;
+    socket.src_port = sport;
+    socket.dst_port = dport;
+    socket.sockdst  = sockdst;
 
-    /* casting receieved data to tcp data format */
-    struct tcp_hdr *tcp = cvt2tcp(recvdata);
+    /* tcp 3 way handshake */
+    if (tcp_connect(&socket, recvdata) < 0) {
+        fprintf(stderr, "Failed to establish connection.\n");
+        return -1;
+    }
 
     /* send data */
-    data = "GET / HTTP/1.1\r\nHost: 172.30.0.3:8888\r\n\r\n";
-    packetsize = packet_size(IPP_TCP, data);
-    ip_packet = pballoc(packetsize);
-    set_ipv4(ip_packet, &src, &dst, IPP_TCP, packetsize);
-    set_tcp(ip_packet, &src, &dst, sport, dport, tcp->th_ack, ntohl(htonl(tcp->th_seq) + 1), TCPF_ACK, 64240, 0, data);
-    sendrsock(sockfd, ip_packet, packetsize, sockdst);
-
-    memset(recvdata, 0, 2048);
-    recvrsock(sockfd, recvdata, 2048, 0, (struct sockaddr *)&sockdst, &sockdst_len);
+    data = "GET / HTTP/1.1\r\nHost: 172.30.0.3:80\r\n\r\n";
+    tcp_send(&socket, recvdata, data);
 
     /* receive data */
+    struct tcp_hdr *res;
+    int ret;
     while (1) {
-        memset(recvdata, 0, 2048);
-        tcp_read(sockfd, &src, &dst, sport, dport, &sockdst, recvdata);
+        ret = tcp_read(&socket, recvdata);
 
-        struct tcp_hdr *res = cvt2tcp(recvdata);
+        res = cvt2tcp(recvdata);
         printf("%s", tcp_payload(res));
 
-        /* close TCP connection */
-        if (res->th_flags == TCPF_FIN + TCPF_ACK || res->th_flags == TCPF_FIN + TCPF_PSH + TCPF_ACK) {
-            tcp_close(sockfd, &src, &dst, sport, dport, &sockdst, recvdata);
+        if (ret != 0) {
             break;
         }
     }
 
-    free(ip_packet);
     close(sockfd);
 }
