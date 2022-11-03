@@ -4,13 +4,13 @@
 #include "socket_struct.h"
 #include "ip_header.h"
 
-void tcp_connect(int fd, struct inet_addr *src, struct inet_addr *dst, unsigned short sport, unsigned short dport,
-                    struct sockaddr_inet *sockdst, char *buffer);
+int tcp_connect(struct sockinfo *socket, char *buffer);
 
-void tcp_read(int fd, struct inet_addr *src, struct inet_addr *dst, unsigned short sport, unsigned short dport,
-                    struct sockaddr_inet *sockdst, char *buffer);
+void tcp_close(struct sockinfo *socket, char *buffer);
 
-void tcp_close(int fd, struct inet_addr *src, struct inet_addr *dst, unsigned short sport, unsigned short dport,
-                    struct sockaddr_inet *sockdst, char *buffer);
+int tcp_read(struct sockinfo *socket, char *buffer);
+
+int tcp_send(struct sockinfo *socket, char *buffer, char *data);
+
 
 #endif

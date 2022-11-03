@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <netdb.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <netinet/tcp.h>
@@ -11,15 +12,25 @@
 
 int rsockfd(unsigned short protocol) {
     int fd;
-    int optval = 1;     /* for socket option */
+
+    /* for socket option */
+    int optval = 1;
+    struct timeval tv;
+    tv.tv_sec  = 3;
+    tv.tv_usec = 0;
 
     /* create raw socket file descriptor */
     if ((fd = socket(PF_INET, SOCK_RAW, protocol)) < 0) {
         fprintf(stderr, "ERR: failed to create raw socket file descriptor.\n");
         exit(1);
     }
-    /* set socket option for including ip header in raw socket */
+    /* include ip header in raw socket */
     if (setsockopt(fd, IPP_IP, IP_HDRINCL, &optval, sizeof(optval)) < 0) {
+        fprintf(stderr, "ERR: failed to set socket option.\n");
+        exit(1);
+    }
+    /* receive timeout */
+    if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(struct timeval)) < 0) {
         fprintf(stderr, "ERR: failed to set socket option.\n");
         exit(1);
     }
@@ -41,9 +52,9 @@ void sendrsock(int fd, char *data, size_t data_len, struct sockaddr_inet sockadd
     }
 }
 
-void recvrsock(int fd, void *buffer, size_t buffer_len, int flag, struct sockaddr *addr, socklen_t *addr_len) {
+int recvrsock(int fd, void *buffer, size_t buffer_len, int flag, struct sockaddr *addr, socklen_t *addr_len) {
     if (recvfrom(fd, buffer, buffer_len, flag, addr, addr_len) < 0) {
-        fprintf(stderr, "ERR: failed to receive data.\n");
-        exit(1);
+        return -1;
     }
+    return 0;
 }

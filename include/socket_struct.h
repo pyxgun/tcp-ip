@@ -19,4 +19,13 @@ struct sockaddr_inet {
                             - sizeof(struct inet_addr)];
 };
 
+struct sockinfo {
+    int                     fd;
+    struct inet_addr        *src_addr;
+    struct inet_addr        *dst_addr;
+    unsigned short          src_port;
+    unsigned short          dst_port;
+    struct sockaddr_inet    sockdst;
+};
+
 #endif
