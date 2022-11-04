@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
     src.s_addr = inet_addr("172.17.50.11");
     dst.s_addr = inet_addr("172.30.0.3");
     sport = gen_sport();
-    dport = 8888;
+    dport = 80;
 
     /* create raw socket */
     sockfd = rsockfd(IPP_TCP);
@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
     }
 
     /* send data */
-    data = "GET / HTTP/1.1\r\nHost: 172.30.0.3:80\r\n\r\n";
+    data = "GET / HTTP/1.1\r\nHost: 172.30.0.3\r\n\r\n";
     tcp_send(&socket, recvdata, data);
 
     /* receive data */

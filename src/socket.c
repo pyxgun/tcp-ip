@@ -20,19 +20,25 @@ int rsockfd(unsigned short protocol) {
     tv.tv_usec = 0;
 
     /* create raw socket file descriptor */
+    if (protocol == IPP_UDP) {
+        protocol = IPP_RAW;
+    }
     if ((fd = socket(PF_INET, SOCK_RAW, protocol)) < 0) {
         fprintf(stderr, "ERR: failed to create raw socket file descriptor.\n");
         exit(1);
     }
-    /* include ip header in raw socket */
-    if (setsockopt(fd, IPP_IP, IP_HDRINCL, &optval, sizeof(optval)) < 0) {
-        fprintf(stderr, "ERR: failed to set socket option.\n");
-        exit(1);
-    }
-    /* receive timeout */
-    if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(struct timeval)) < 0) {
-        fprintf(stderr, "ERR: failed to set socket option.\n");
-        exit(1);
+
+    if(protocol == IPP_TCP) {
+        /* include ip header in raw socket */
+        if (setsockopt(fd, IPP_IP, IP_HDRINCL, &optval, sizeof(optval)) < 0) {
+            fprintf(stderr, "ERR: failed to set socket option.\n");
+            exit(1);
+        }
+        /* receive timeout */
+        if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(struct timeval)) < 0) {
+            fprintf(stderr, "ERR: failed to set socket option.\n");
+            exit(1);
+        }
     }
 
     return fd;

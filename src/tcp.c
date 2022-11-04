@@ -147,39 +147,43 @@ int tcp_read(struct sockinfo *socket, char *buffer) {
     int sockdst_len;
     char prevdata[buffersize];
     memcpy(prevdata, buffer, buffersize);
+    struct tcp_hdr *prevtcp = cvt2tcp(prevdata);
 
-    /* receive data */
-    memset(buffer, 0, buffersize);
-    if(recvrsock(socket->fd, buffer, buffersize, 0, (struct sockaddr *)&socket->sockdst, &sockdst_len) < 0) {
-        tcp_close(socket, prevdata);
-        return 1;
-    }
-
-    /* compute tcp data length */
-    struct tcp_hdr *tcp = cvt2tcp(buffer);
-    size_t tcp_data_len = tcp_pl_len(buffer);
-
-
-    switch (tcp->th_flags) {
-        case TCPF_ACK:
-        case TCPF_ACK + TCPF_PSH:
-            data = "";
-            packetsize = packet_size(IPP_TCP, data);
-            ip_packet = pballoc(packetsize);
-            set_ipv4(ip_packet, socket->src_addr, socket->dst_addr, IPP_TCP, packetsize);
-
-            /* send TCP ACK (sequence num + received data len)*/
-            set_tcp(ip_packet, socket->src_addr, socket->dst_addr, socket->src_port, socket->dst_port,
-                    tcp->th_ack, ntohl(htonl(tcp->th_seq) + tcp_data_len), TCPF_ACK, 64240, 0, data);
-            sendrsock(socket->fd, ip_packet, packetsize, socket->sockdst);
-            free(ip_packet);
-            break;
-
-        case TCPF_FIN:
-        case TCPF_FIN + TCPF_ACK:
-        case TCPF_FIN + TCPF_ACK + TCPF_PSH:
-            tcp_close(socket, buffer);
+    int cnt = 0;
+    while (1) {
+        /* receive data */
+        memset(buffer, 0, buffersize);
+        if(recvrsock(socket->fd, buffer, buffersize, 0, (struct sockaddr *)&socket->sockdst, &sockdst_len) < 0) {
+            tcp_close(socket, prevdata);
             return 1;
+        }
+
+        /* compute tcp data length */
+        struct tcp_hdr *tcp = cvt2tcp(buffer);
+
+        if (tcp->th_ack == prevtcp->th_ack) {
+            switch (tcp->th_flags) {
+                case TCPF_ACK:
+                case TCPF_ACK + TCPF_PSH:
+                    size_t tcp_data_len = tcp_pl_len(buffer);
+                    data = "";
+                    packetsize = packet_size(IPP_TCP, data);
+                    ip_packet = pballoc(packetsize);
+                    set_ipv4(ip_packet, socket->src_addr, socket->dst_addr, IPP_TCP, packetsize);
+
+                    /* send TCP ACK (sequence num + received data len)*/
+                    set_tcp(ip_packet, socket->src_addr, socket->dst_addr, socket->src_port, socket->dst_port,
+                            tcp->th_ack, ntohl(htonl(tcp->th_seq) + tcp_data_len), TCPF_ACK, 64240, 0, data);
+                    sendrsock(socket->fd, ip_packet, packetsize, socket->sockdst);
+                    free(ip_packet);
+                    return 0;
+
+                case TCPF_FIN:
+                case TCPF_FIN + TCPF_ACK:
+                case TCPF_FIN + TCPF_ACK + TCPF_PSH:
+                    tcp_close(socket, buffer);
+                    return 1;
+            }
+        }
     }
-    return 0;
 }
