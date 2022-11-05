@@ -27,7 +27,7 @@ void set_udp(char *p, struct inet_addr *src, struct inet_addr *dst,
 
 /* set tcp datagram */
 void set_tcp(char *p, struct inet_addr *src, struct inet_addr *dst, unsigned short sport, unsigned short dport,
-                tcp_seq seq, tcp_seq ack, uint8_t flag, uint16_t win_size, uint16_t urp, char *data);
+                tcp_seq seq, tcp_seq ack, uint8_t flag, uint16_t win_size, uint16_t urp, char *data, size_t len);
 
 /* convert to tcp header */
 struct tcp_hdr *cvt2tcp(char *p);

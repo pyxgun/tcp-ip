@@ -10,7 +10,7 @@ void tcp_close(struct sockinfo *socket, char *buffer);
 
 int tcp_read(struct sockinfo *socket, char *buffer);
 
-int tcp_send(struct sockinfo *socket, char *buffer, char *data);
+int tcp_send(struct sockinfo *socket, char *buffer, char *data, size_t len);
 
 
 #endif

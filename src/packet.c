@@ -114,7 +114,7 @@ void set_udp(char *p, struct inet_addr *src, struct inet_addr *dst,
 }
 
 void set_tcp(char *p, struct inet_addr *src, struct inet_addr *dst, unsigned short sport, unsigned short dport,
-                tcp_seq seq, tcp_seq ack, uint8_t flag, uint16_t win_size, uint16_t urp, char *data) {
+                tcp_seq seq, tcp_seq ack, uint8_t flag, uint16_t win_size, uint16_t urp, char *data, size_t len) {
     char *buffer;
     struct ip_hdr *ip;
     struct tcp_hdr *tcp;
@@ -150,7 +150,7 @@ void set_tcp(char *p, struct inet_addr *src, struct inet_addr *dst, unsigned sho
     tcp->th_urp     = urp;
     /* set data after tcp header */
     if (strlen(data) != 0) {
-        memcpy((char *)tcp + sizeof(struct tcp_hdr), data, strlen(data));
+        memcpy((char *)tcp + sizeof(struct tcp_hdr), data, len);
     }
     /* computing checksum */
     tcp->th_sum = in_cksum((unsigned short *)buffer, total_len);
