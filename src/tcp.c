@@ -24,7 +24,7 @@ int tcp_connect(struct sockinfo *socket, char *buffer) {
 
     /* send TCP SYN */
     set_tcp(ip_packet, socket->src_addr, socket->dst_addr, socket->src_port, socket->dst_port,
-            htonl(gen_initseq()), 0, TCPF_SYN, 64240, 0, "");
+            htonl(gen_initseq()), 0, TCPF_SYN, 64240, 0, "", 0);
     sendrsock(socket->fd, ip_packet, packetsize, socket->sockdst);
 
     /* receive TCP SYN/ACK */
@@ -40,7 +40,7 @@ int tcp_connect(struct sockinfo *socket, char *buffer) {
         case TCPF_SYN + TCPF_ACK:
             /* send TCP ACK */
             set_tcp(ip_packet, socket->src_addr, socket->dst_addr, socket->src_port, socket->dst_port,
-                    tcp->th_ack, ntohl(htonl(tcp->th_seq) + 1), TCPF_ACK, 64240, 0, "");
+                    tcp->th_ack, ntohl(htonl(tcp->th_seq) + 1), TCPF_ACK, 64240, 0, "", 0);
             sendrsock(socket->fd, ip_packet, packetsize, socket->sockdst);
             free(ip_packet);
             break;
@@ -70,11 +70,11 @@ void tcp_close(struct sockinfo *socket, char *buffer) {
         case TCPF_FIN + TCPF_ACK:
             /* send TCP ACK */
             set_tcp(ip_packet, socket->src_addr, socket->dst_addr, socket->src_port, socket->dst_port,
-                    tcp->th_ack, ntohl(htonl(tcp->th_seq) + 1), TCPF_ACK, 64240, 0, data);
+                    tcp->th_ack, ntohl(htonl(tcp->th_seq) + 1), TCPF_ACK, 64240, 0, data, 0);
             sendrsock(socket->fd, ip_packet, packetsize, socket->sockdst);
             /* send TCP FIN/ACK */
             set_tcp(ip_packet, socket->src_addr, socket->dst_addr, socket->src_port, socket->dst_port,
-                    tcp->th_ack, ntohl(htonl(tcp->th_seq) + 1), TCPF_FIN + TCPF_ACK, 64240, 0, data);
+                    tcp->th_ack, ntohl(htonl(tcp->th_seq) + 1), TCPF_FIN + TCPF_ACK, 64240, 0, data, 0);
             sendrsock(socket->fd, ip_packet, packetsize, socket->sockdst);
             break;
 
@@ -83,22 +83,22 @@ void tcp_close(struct sockinfo *socket, char *buffer) {
             size_t tcp_data_len = tcp_pl_len(buffer);
             /* send TCP ACK */
             set_tcp(ip_packet, socket->src_addr, socket->dst_addr, socket->src_port, socket->dst_port,
-                    tcp->th_ack, ntohl(htonl(tcp->th_seq) + tcp_data_len + 1), TCPF_ACK, 64240, 0, data);
+                    tcp->th_ack, ntohl(htonl(tcp->th_seq) + tcp_data_len + 1), TCPF_ACK, 64240, 0, data, 0);
             sendrsock(socket->fd, ip_packet, packetsize, socket->sockdst);
             /* send TCP FIN/ACK */
             set_tcp(ip_packet, socket->src_addr, socket->dst_addr, socket->src_port, socket->dst_port,
-                    tcp->th_ack, ntohl(htonl(tcp->th_seq) + 1), TCPF_FIN + TCPF_ACK, 64240, 0, data);
+                    tcp->th_ack, ntohl(htonl(tcp->th_seq) + 1), TCPF_FIN + TCPF_ACK, 64240, 0, data, 0);
             sendrsock(socket->fd, ip_packet, packetsize, socket->sockdst);
             break;
 
         default:
             set_tcp(ip_packet, socket->src_addr, socket->dst_addr, socket->src_port, socket->dst_port,
-                    tcp->th_ack, ntohl(htonl(tcp->th_seq) + 1), TCPF_FIN + TCPF_ACK, 64240, 0, data);
+                    tcp->th_ack, ntohl(htonl(tcp->th_seq) + 1), TCPF_FIN + TCPF_ACK, 64240, 0, data, 0);
             sendrsock(socket->fd, ip_packet, packetsize, socket->sockdst);
             recvrsock(socket->fd, buffer, buffersize, 0, (struct sockaddr *)&socket->sockdst, &sockdst_len);
             tcp = cvt2tcp(buffer);
             set_tcp(ip_packet, socket->src_addr, socket->dst_addr, socket->src_port, socket->dst_port,
-                    tcp->th_ack, ntohl(htonl(tcp->th_seq) + 1), TCPF_ACK, 64240, 0, data);
+                    tcp->th_ack, ntohl(htonl(tcp->th_seq) + 1), TCPF_ACK, 64240, 0, data, 0);
             sendrsock(socket->fd, ip_packet, packetsize, socket->sockdst);
             break;
     }
@@ -106,7 +106,7 @@ void tcp_close(struct sockinfo *socket, char *buffer) {
     free(ip_packet);
 }
 
-int tcp_send(struct sockinfo *socket, char *buffer, char *data) {
+int tcp_send(struct sockinfo *socket, char *buffer, char *data, size_t len) {
     struct tcp_hdr *tcp = cvt2tcp(buffer);
     char    *ip_packet;
     size_t  packetsize;
@@ -123,7 +123,7 @@ int tcp_send(struct sockinfo *socket, char *buffer, char *data) {
     /* TODO: implement TCP retransmission */
     /* send TCP SYN */
     set_tcp(ip_packet, socket->src_addr, socket->dst_addr, socket->src_port, socket->dst_port,
-            tcp->th_ack, ntohl(htonl(tcp->th_seq) + 1), TCPF_ACK, 64240, 0, data);
+            tcp->th_ack, ntohl(htonl(tcp->th_seq) + 1), TCPF_ACK, 64240, 0, data, len);
     sendrsock(socket->fd, ip_packet, packetsize, socket->sockdst);
 
     memset(buffer, 0, buffersize);
@@ -173,7 +173,7 @@ int tcp_read(struct sockinfo *socket, char *buffer) {
 
                     /* send TCP ACK (sequence num + received data len)*/
                     set_tcp(ip_packet, socket->src_addr, socket->dst_addr, socket->src_port, socket->dst_port,
-                            tcp->th_ack, ntohl(htonl(tcp->th_seq) + tcp_data_len), TCPF_ACK, 64240, 0, data);
+                            tcp->th_ack, ntohl(htonl(tcp->th_seq) + tcp_data_len), TCPF_ACK, 64240, 0, data, 0);
                     sendrsock(socket->fd, ip_packet, packetsize, socket->sockdst);
                     free(ip_packet);
                     return 0;

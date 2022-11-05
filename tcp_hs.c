@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
 
     /* send data */
     data = "GET / HTTP/1.1\r\nHost: 172.30.0.3\r\n\r\n";
-    tcp_send(&socket, recvdata, data);
+    tcp_send(&socket, recvdata, data, strlen(data));
 
     /* receive data */
     struct tcp_hdr *res;

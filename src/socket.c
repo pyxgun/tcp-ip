@@ -16,7 +16,7 @@ int rsockfd(unsigned short protocol) {
     /* for socket option */
     int optval = 1;
     struct timeval tv;
-    tv.tv_sec  = 3;
+    tv.tv_sec  = 1;
     tv.tv_usec = 0;
 
     /* create raw socket file descriptor */
