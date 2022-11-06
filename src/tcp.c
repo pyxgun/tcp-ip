@@ -119,7 +119,6 @@ int tcp_send(struct sockinfo *socket, char *buffer, char *data, size_t len) {
     packetsize = packet_size(IPP_TCP, data);
     ip_packet = pballoc(packetsize);
     set_ipv4(ip_packet, socket->src_addr, socket->dst_addr, IPP_TCP, packetsize);
-
     /* TODO: implement TCP retransmission */
     /* send TCP SYN */
     set_tcp(ip_packet, socket->src_addr, socket->dst_addr, socket->src_port, socket->dst_port,
