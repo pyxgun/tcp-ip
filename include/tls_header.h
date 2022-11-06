@@ -80,35 +80,23 @@ struct hello_request {
     struct ext_sup_version  ext_sup_ver;        /* extension : supported version */
 };
 
-/*
- *  Handshake Protocol Structure
- *
- *  struct {
- *      HandshakeType msg_type;
- *      uint24 length;
- *      select (HandshakeType) {
- *          case hello_request:       HelloRequest;
- *          case client_hello:        ClientHello;
- *          case server_hello:        ServerHello;
- *          case certificate:         Certificate;
- *          case server_key_exchange: ServerKeyExchange;
- *          case certificate_request: CertificateRequest;
- *          case server_hello_done:   ServerHelloDone;
- *          case certificate_verify:  CertificateVerify;
- *          case client_key_exchange: ClientKeyExchange;
- *          case finished:            Finished;
- *      } body;
- *  } Handshake;
- * 
- */
 
 struct tls_client_hello {
-    uint8_t     msg_type;                   /* message type */
+    uint8_t     content_type;               /* content type */
     uint16_t    tls_version;                /* tls version */
     uint16_t    total_len;                  /* total length */
     struct hello_request    client_hello;   /* hello request */
 };
 
+
+/* content type */
+#define TLS_CNT_CNG_CIPHER_SPEC         20
+#define TLS_CNT_ALERT                   21
+#define TLS_CNT_HANDSHAKE               22
+#define TLS_CNT_APPLICATION_DATA        23
+
+/* tls version */
+#define TLS_VERSION_1_0                 0x0301
 
 /* handshake protocol */
 #define HSPROTO_HELLO_REQUEST           0

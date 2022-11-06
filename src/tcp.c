@@ -18,7 +18,7 @@ int tcp_connect(struct sockinfo *socket, char *buffer) {
     int sockdst_len;
 
     /* create ipv4 header */
-    packetsize = packet_size(IPP_TCP, "");
+    packetsize = packet_size(IPP_TCP, "", 0);
     ip_packet = pballoc(packetsize);
     set_ipv4(ip_packet, socket->src_addr, socket->dst_addr, IPP_TCP, packetsize);
 
@@ -59,8 +59,7 @@ void tcp_close(struct sockinfo *socket, char *buffer) {
     int buffersize = 1500;
     int sockdst_len;
 
-    data = "";
-    packetsize = packet_size(IPP_TCP, data);
+    packetsize = packet_size(IPP_TCP, "", 0);
     ip_packet = pballoc(packetsize);
     set_ipv4(ip_packet, socket->src_addr, socket->dst_addr, IPP_TCP, packetsize);
 
@@ -116,7 +115,7 @@ int tcp_send(struct sockinfo *socket, char *buffer, char *data, size_t len) {
     int sockdst_len;
 
     /* create ipv4 header */
-    packetsize = packet_size(IPP_TCP, data);
+    packetsize = packet_size(IPP_TCP, data, len);
     ip_packet = pballoc(packetsize);
     set_ipv4(ip_packet, socket->src_addr, socket->dst_addr, IPP_TCP, packetsize);
     /* TODO: implement TCP retransmission */
@@ -165,8 +164,7 @@ int tcp_read(struct sockinfo *socket, char *buffer) {
                 case TCPF_ACK:
                 case TCPF_ACK + TCPF_PSH:
                     size_t tcp_data_len = tcp_pl_len(buffer);
-                    data = "";
-                    packetsize = packet_size(IPP_TCP, data);
+                    packetsize = packet_size(IPP_TCP, "", 0);
                     ip_packet = pballoc(packetsize);
                     set_ipv4(ip_packet, socket->src_addr, socket->dst_addr, IPP_TCP, packetsize);
 

@@ -23,7 +23,7 @@ unsigned short in_cksum(unsigned short *buff, int len) {
 }
 
 
-size_t packet_size(unsigned short protocol, char *data) {
+size_t packet_size(unsigned short protocol, char *data, size_t len) {
     size_t packetsize;
     
     /* payload size */
@@ -36,7 +36,7 @@ size_t packet_size(unsigned short protocol, char *data) {
             break;
     }
     /* ip header and payload size */
-    packetsize += sizeof(struct ip_hdr) + strlen(data);
+    packetsize += sizeof(struct ip_hdr) + len;
 
     return packetsize;
 }

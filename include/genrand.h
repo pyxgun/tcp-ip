@@ -3,5 +3,6 @@
 
 unsigned int gen_initseq(void);
 unsigned int gen_sport(void);
+uint8_t random_byte(void);
 
 #endif

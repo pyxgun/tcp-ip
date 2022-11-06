@@ -9,7 +9,7 @@
 unsigned short in_cksum(unsigned short *addr, int len);
 
 /* calculate total packet size */
-size_t packet_size(unsigned short protocol, char *data);
+size_t packet_size(unsigned short protocol, char *data, size_t len);
 
 /* allocate memory for packet buffer */
 char *pballoc(size_t packet_size);

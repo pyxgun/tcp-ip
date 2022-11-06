@@ -10,7 +10,8 @@
 #include "packet.h"
 #include "genrand.h"
 #include "tcp.h"
-
+#include "tls_header.h"
+#include "tls.h"
 
 
 int main(int argc, char **argv) {
@@ -27,7 +28,7 @@ int main(int argc, char **argv) {
     src.s_addr = inet_addr("172.17.50.11");
     dst.s_addr = inet_addr("172.30.0.3");
     sport = gen_sport();
-    dport = 80;
+    dport = 443;
 
     /* create raw socket */
     sockfd = rsockfd(IPP_TCP);
@@ -49,7 +50,9 @@ int main(int argc, char **argv) {
     }
 
     /* send data */
-
+    data = malloc(sizeof(char) * 517);
+    create_hello_req(data);
+    tcp_send(&socket, recvdata, data, sizeof(uint8_t) * 517);
 
     /* receive data */
     struct tcp_hdr *res;
@@ -64,6 +67,8 @@ int main(int argc, char **argv) {
             break;
         }
     }
+
+    free(data);
 
     close(sockfd);
 }
