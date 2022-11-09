@@ -12,5 +12,6 @@ int tcp_read(struct sockinfo *socket, char *buffer);
 
 int tcp_send(struct sockinfo *socket, char *buffer, char *data, size_t len);
 
+int tcp_syn(struct sockinfo *socket, char *buffer);
 
 #endif

@@ -7,7 +7,29 @@
 #include "packet.h"
 #include "genrand.h"
 
-#include <stdio.h>
+
+int tcp_syn(struct sockinfo *socket, char *buffer) {
+    char    *ip_packet;
+    size_t  packetsize;
+
+    /* for recvfrom */
+    int buffersize = 1500;
+    int sockdst_len;
+
+    /* create ipv4 header */
+    packetsize = packet_size(IPP_TCP, "");
+    ip_packet = pballoc(packetsize);
+    set_ipv4(ip_packet, socket->src_addr, socket->dst_addr, IPP_TCP, packetsize);
+
+    /* send TCP SYN */
+    set_tcp(ip_packet, socket->src_addr, socket->dst_addr, socket->src_port, socket->dst_port,
+            htonl(gen_initseq()), 0, TCPF_SYN, 64240, 0, "", 0);
+    sendrsock(socket->fd, ip_packet, packetsize, socket->sockdst);
+
+    free(ip_packet);
+    return 0;
+}
+
 
 int tcp_connect(struct sockinfo *socket, char *buffer) {
     char    *ip_packet;
