@@ -91,14 +91,14 @@ int main(int argc, char **argv) {
     gettimeofday(&t_start, NULL);
 
     for (int i = 0; i < num_packets; i++) {
-        printf("Sending TCP SYN Packets ... %d/%d\r", i + 1, num_packets);
+        printf("Sending TCP SYN/ACK Packets ... %d/%d\r", i + 1, num_packets);
 
         /* set random source port 49152 - 65535 */
         sport           = gen_sport();
         socket.src_port = sport;
 
-        /* send TCP SYN */
-        tcp_syn(&socket, recvdata);
+        /* send TCP SYN ACK */
+        tcp_syn_ack(&socket, recvdata);
 
         usleep(sleep_time);
     }

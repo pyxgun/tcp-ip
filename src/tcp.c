@@ -31,6 +31,27 @@ int tcp_syn(struct sockinfo *socket, char *buffer) {
 }
 
 
+int tcp_syn_ack(struct sockinfo *socket, char *buffer) {
+    char    *ip_packet;
+    size_t  packetsize;
+
+    int buffersize = 1500;
+    int sockdst_len;
+
+    packetsize = packet_size(IPP_TCP, "");
+    ip_packet  = pballoc(packetsize);
+    set_ipv4(ip_packet, socket->src_addr, socket->dst_addr, IPP_TCP, packetsize);
+
+    /* send TCP SYN ACK */
+    set_tcp(ip_packet, socket->src_addr, socket->dst_addr, socket->src_port, socket->dst_port,
+            htonl(gen_initseq()), 0, TCPF_SYN + TCPF_ACK, 64240, 0, "", 0);
+    sendrsock(socket->fd, ip_packet, packetsize, socket->sockdst);
+
+    free(ip_packet);
+    return 0;
+}
+
+
 int tcp_connect(struct sockinfo *socket, char *buffer) {
     char    *ip_packet;
     size_t  packetsize;
