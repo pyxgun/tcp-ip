@@ -1,4 +1,4 @@
-PROG = a.out
+PROG = tcpflood
 
 ALL  = $(wildcard *.c) $(wildcard src/*.c)
 OBJS = $(ALL:%.c=%.o)
